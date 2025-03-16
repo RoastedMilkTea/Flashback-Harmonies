@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h> 
+#include <time.h>   
 
 #define AUDIO_BASE  0xFF203040  // base address of the audio codec
 #define SWITCHES_ADDR 0xFF200040  // base address of switches
@@ -50,6 +52,12 @@ struct audio_t {
     volatile unsigned int ldata;
     volatile unsigned int rdata;
 };
+
+//create a struct of songs so that we can randomly access them 
+typedef struct {
+    const int (*notes)[2];
+    int length;
+} Song;
 
 //pointer to audio register structure
 struct audio_t *const audiop = ((struct audio_t *) AUDIO_BASE);
@@ -156,25 +164,70 @@ void play_song(const int song[][2], int length) {
     }
 }
 
+//setting up for random selection
+unsigned int seed = 1;
+
+unsigned int custom_rand() {
+    seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF; //random seed
+    return seed;
+}
+
+void custom_srand(unsigned int new_seed) {
+    seed = new_seed;
+}
+
 // main function
 int main(void) {
     audiop->control = 0x1;
+    custom_srand(*(timer_ptr) & 0xFFFF);
+
+    //creating the array of songs
+    Song songs[5];
+    songs[0].notes = twinkle_twinkle;
+    songs[0].length = sizeof(twinkle_twinkle) / sizeof(twinkle_twinkle[0]);
+    
+    songs[1].notes = mary_had_a_little_lamb;
+    songs[1].length = sizeof(mary_had_a_little_lamb) / sizeof(mary_had_a_little_lamb[0]);
+    
+    songs[2].notes = old_macdonald;
+    songs[2].length = sizeof(old_macdonald) / sizeof(old_macdonald[0]);
+    
+    songs[3].notes = o_canada;
+    songs[3].length = sizeof(o_canada) / sizeof(o_canada[0]);
+    
+    songs[4].notes = ring_around_the_rosy;
+    songs[4].length = sizeof(ring_around_the_rosy) / sizeof(ring_around_the_rosy[0]);
+    
+    int prevSwitchState = 0;
+    int currentSwitchState;
 
     int switchInput;
     while (1) {
-        switchInput = *switch_ptr;
+        //switchInput = *switch_ptr;
 
-        if (switchInput & 0x1) {
-            play_song(twinkle_twinkle, sizeof(twinkle_twinkle) / sizeof(twinkle_twinkle[0]));
-        } else if (switchInput & 0x2) {
-            play_song(mary_had_a_little_lamb, sizeof(mary_had_a_little_lamb) / sizeof(mary_had_a_little_lamb[0]));
-        } else if (switchInput & 0x4) {
-            play_song(old_macdonald, sizeof(old_macdonald) / sizeof(old_macdonald[0]));
-        } else if (switchInput & 0x8) {
-            play_song(o_canada, sizeof(o_canada) / sizeof(o_canada[0]));
-        } else if (switchInput & 0x10) {
-            play_song(ring_around_the_rosy, sizeof(ring_around_the_rosy) / sizeof(ring_around_the_rosy[0]));
+        // if (switchInput & 0x1) {
+        //     play_song(twinkle_twinkle, sizeof(twinkle_twinkle) / sizeof(twinkle_twinkle[0]));
+        // } else if (switchInput & 0x2) {
+        //     play_song(mary_had_a_little_lamb, sizeof(mary_had_a_little_lamb) / sizeof(mary_had_a_little_lamb[0]));
+        // } else if (switchInput & 0x4) {
+        //     play_song(old_macdonald, sizeof(old_macdonald) / sizeof(old_macdonald[0]));
+        // } else if (switchInput & 0x8) {
+        //     play_song(o_canada, sizeof(o_canada) / sizeof(o_canada[0]));
+        // } else if (switchInput & 0x10) {
+        //     play_song(ring_around_the_rosy, sizeof(ring_around_the_rosy) / sizeof(ring_around_the_rosy[0]));
+        // }
+
+        currentSwitchState = *switch_ptr;
+        
+        // check if any switch has been newly pressed
+        if (currentSwitchState != 0 && prevSwitchState == 0) {
+            // select a random song 
+            int randomSongIndex = custom_rand() % 5;
+            play_song(songs[randomSongIndex].notes, songs[randomSongIndex].length);
         }
+        
+        // store the current switch state for the next iteration
+        prevSwitchState = currentSwitchState;
     }
 
     return 0;
