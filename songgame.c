@@ -18,6 +18,13 @@ volatile int* switch_ptr = (int*) SWITCHES_ADDR;
 volatile int* timer_ptr = (int*) TIMER_BASE;
 
 //define notes (Hz)
+#define C3  130
+#define D3  147
+#define E3  165
+#define F3  175
+#define G3  196
+#define A3  220
+#define B3  247
 #define C4  261
 #define D4  294
 #define E4  330
@@ -26,6 +33,7 @@ volatile int* timer_ptr = (int*) TIMER_BASE;
 #define A4  440
 #define B4  494
 #define C5  523
+
 
 //define durations (in milliseconds)
 #define QUARTER 500
@@ -46,20 +54,60 @@ struct audio_t {
 //pointer to audio register structure
 struct audio_t *const audiop = ((struct audio_t *) AUDIO_BASE);
 
-//song aata
+//song name: twinkle twinkle
 const int twinkle_twinkle[][2] = {
     {C4, QUARTER}, {C4, QUARTER}, {G4, QUARTER}, {G4, QUARTER},
     {A4, QUARTER}, {A4, QUARTER}, {G4, HALF},
     {F4, QUARTER}, {F4, QUARTER}, {E4, QUARTER}, {E4, QUARTER},
     {D4, QUARTER}, {D4, QUARTER}, {C4, HALF}
 };
-
+//song name: mary had a little lamb
 const int mary_had_a_little_lamb[][2] = {
     {E4, QUARTER}, {D4, QUARTER}, {C4, QUARTER}, {D4, QUARTER},
     {E4, QUARTER}, {E4, QUARTER}, {E4, HALF},
     {D4, QUARTER}, {D4, QUARTER}, {D4, HALF},
     {E4, QUARTER}, {G4, QUARTER}, {G4, HALF}
 };
+
+//song name: old macDonald had a farm
+const int old_macdonald[][2] = {
+    {G4, QUARTER}, {G4, QUARTER}, {G4, QUARTER}, {D4, HALF},
+    {E4, QUARTER}, {E4, QUARTER}, {D4, HALF},
+    {B3, QUARTER}, {B3, QUARTER}, {A3, QUARTER}, {A3, QUARTER}, 
+    {G3, HALF}, {D4, QUARTER}, {G3, HALF},
+
+    {G4, QUARTER}, {G4, QUARTER}, {G4, QUARTER}, {D4, HALF},
+    {E4, QUARTER}, {E4, QUARTER}, {D4, HALF},
+    {B3, QUARTER}, {B3, QUARTER}, {A3, QUARTER}, {A3, QUARTER}, 
+    {G3, HALF}, {D4, QUARTER}, {G3, HALF}
+};
+
+//song name: O Canada 
+const int o_canada[][2] = {
+    {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
+    {F4, QUARTER}, {E4, QUARTER}, {D4, HALF},
+    {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
+    {F4, QUARTER}, {E4, QUARTER}, {D4, HALF},
+
+    {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
+    {F4, QUARTER}, {E4, QUARTER}, {D4, HALF},
+    {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
+    {F4, QUARTER}, {E4, QUARTER}, {D4, WHOLE}
+};
+
+// song name: ring around the rosy
+const int ring_around_the_rosy[][2] = {
+    {C4, QUARTER}, {D4, QUARTER}, {E4, QUARTER}, {C4, QUARTER},
+    {C4, QUARTER}, {D4, QUARTER}, {E4, QUARTER}, {C4, QUARTER},
+    {E4, QUARTER}, {F4, QUARTER}, {G4, HALF},
+    {E4, QUARTER}, {C4, QUARTER}, {G4, HALF},
+
+    {C4, QUARTER}, {D4, QUARTER}, {E4, QUARTER}, {C4, QUARTER},
+    {C4, QUARTER}, {D4, QUARTER}, {E4, QUARTER}, {C4, QUARTER},
+    {E4, QUARTER}, {F4, QUARTER}, {G4, HALF},
+    {E4, QUARTER}, {C4, QUARTER}, {G4, WHOLE}
+};
+
 
 //function to set up the timer
 void setup_timer() {
