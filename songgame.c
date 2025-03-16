@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define AUDIO_BASE  0xFF203040  // Base address of the audio codec
-#define SWITCHES_ADDR 0xFF200040  // Base address of switches
-#define TIMER_BASE  0xFF202000  // Base address of the timer
+#define AUDIO_BASE  0xFF203040  // base address of the audio codec
+#define SWITCHES_ADDR 0xFF200040  // base address of switches
+#define TIMER_BASE  0xFF202000  // base address of the timer
 
 #define SAMPLE_RATE 8000  // 8 kHz sample rate
 #define CLOCK_FREQ  100000000  // 100 MHz clock
@@ -12,7 +12,7 @@
 #define MAX_VALUE 0xFFFFFF
 #define MIN_VALUE 0
 
-// Hardware registers (memory-mapped)
+// hardware registers (memory-mapped)
 volatile int* audio_ptr = (int*) AUDIO_BASE;
 volatile int* switch_ptr = (int*) SWITCHES_ADDR;
 volatile int* timer_ptr = (int*) TIMER_BASE;
@@ -122,13 +122,16 @@ void play_note(int frequency, int duration_ms) {
     int high = 0;
 
     //calculate the number of timer cycles required
-    int cycles = (duration_ms * SAMPLE_RATE) / 1000;
+    int totalSamples = (duration_ms * SAMPLE_RATE) / 1000;
 
-    for (int i = 0; i < cycles; i++) {
+    for (int i = 0; i < totalSamples; i++) {
         if (counter >= periodSamples / 2) {
             high = !high;
             counter = 0;
         }
+
+        //waiting for space
+        while (audiop->wslc == 0){}
 
         if (high) {
             audiop->ldata = MAX_VALUE;
@@ -141,8 +144,8 @@ void play_note(int frequency, int duration_ms) {
         counter++;
 
         // wait for the timer flag
-        while (!(*(timer_ptr) & 0x1)) {}
-        *(timer_ptr) = 0;  //clear the flag
+        //while (!(*(timer_ptr) & 0x1)) {}
+        //*(timer_ptr) = 0;  //clear the flag
     }
 }
 
@@ -155,7 +158,7 @@ void play_song(const int song[][2], int length) {
 
 // main function
 int main(void) {
-    setup_timer();
+    audiop->control = 0x1;
 
     int switchInput;
     while (1) {
@@ -165,10 +168,15 @@ int main(void) {
             play_song(twinkle_twinkle, sizeof(twinkle_twinkle) / sizeof(twinkle_twinkle[0]));
         } else if (switchInput & 0x2) {
             play_song(mary_had_a_little_lamb, sizeof(mary_had_a_little_lamb) / sizeof(mary_had_a_little_lamb[0]));
+        } else if (switchInput & 0x4) {
+            play_song(old_macdonald, sizeof(old_macdonald) / sizeof(old_macdonald[0]));
+        } else if (switchInput & 0x8) {
+            play_song(o_canada, sizeof(o_canada) / sizeof(o_canada[0]));
+        } else if (switchInput & 0x10) {
+            play_song(ring_around_the_rosy, sizeof(ring_around_the_rosy) / sizeof(ring_around_the_rosy[0]));
         }
     }
 
     return 0;
 }
 
-// hi its anya testing git 
