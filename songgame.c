@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h> 
-#include <time.h>   
+#include <time.h>  
+#include "visuals.c" 
 
 #define AUDIO_BASE  0xFF203040  // base address of the audio codec
 #define SWITCHES_ADDR 0xFF200040  // base address of switches
@@ -84,10 +85,6 @@ const int old_macdonald[][2] = {
     {B3, QUARTER}, {B3, QUARTER}, {A3, QUARTER}, {A3, QUARTER}, 
     {G3, HALF}, {D4, QUARTER}, {G3, HALF},
 
-    {G4, QUARTER}, {G4, QUARTER}, {G4, QUARTER}, {D4, HALF},
-    {E4, QUARTER}, {E4, QUARTER}, {D4, HALF},
-    {B3, QUARTER}, {B3, QUARTER}, {A3, QUARTER}, {A3, QUARTER}, 
-    {G3, HALF}, {D4, QUARTER}, {G3, HALF}
 };
 
 //song name: O Canada 
@@ -96,11 +93,6 @@ const int o_canada[][2] = {
     {F4, QUARTER}, {E4, QUARTER}, {D4, HALF},
     {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
     {F4, QUARTER}, {E4, QUARTER}, {D4, HALF},
-
-    {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
-    {F4, QUARTER}, {E4, QUARTER}, {D4, HALF},
-    {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
-    {F4, QUARTER}, {E4, QUARTER}, {D4, WHOLE}
 };
 
 // song name: ring around the rosy
@@ -110,10 +102,6 @@ const int ring_around_the_rosy[][2] = {
     {E4, QUARTER}, {F4, QUARTER}, {G4, HALF},
     {E4, QUARTER}, {C4, QUARTER}, {G4, HALF},
 
-    {C4, QUARTER}, {D4, QUARTER}, {E4, QUARTER}, {C4, QUARTER},
-    {C4, QUARTER}, {D4, QUARTER}, {E4, QUARTER}, {C4, QUARTER},
-    {E4, QUARTER}, {F4, QUARTER}, {G4, HALF},
-    {E4, QUARTER}, {C4, QUARTER}, {G4, WHOLE}
 };
 
 
