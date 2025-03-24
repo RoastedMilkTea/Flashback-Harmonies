@@ -69,9 +69,12 @@ typedef struct {
 } Song;
 
 Song songs[5]; //make the songs array global
+Song short_song[5]; //make shortened song array for guessing 
 
 //pointer to audio register structure
 struct audio_t *const audiop = ((struct audio_t *) AUDIO_BASE);
+
+////////////////////////////////////////////////////////////////
 
 //song name: twinkle twinkle
 const int twinkle_twinkle[][2] = {
@@ -114,6 +117,39 @@ const int ring_around_the_rosy[][2] = {
 
 };
 
+////////////////////////////////////////////////////////////////////
+
+//song name: twinkle twinkle
+const int short_twinkle_twinkle[][2] = {
+    {C4, QUARTER}, {C4, QUARTER}, {G4, QUARTER}, {G4, QUARTER},
+    {A4, QUARTER}, {A4, QUARTER}
+};
+//song name: mary had a little lamb
+const int short_mary_had_a_little_lamb[][2] = {
+    {E4, QUARTER}, {D4, QUARTER}, {C4, QUARTER}, {D4, QUARTER},
+    {E4, QUARTER}, {E4, QUARTER}
+};
+
+//song name: old macDonald had a farm
+const int short_old_macdonald[][2] = {
+    {G4, QUARTER}, {G4, QUARTER}, {G4, QUARTER}, {D4, HALF},
+    {E4, QUARTER}, {E4, QUARTER}
+};
+
+//song name: O Canada
+const int short_o_canada[][2] = {
+    {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
+    {F4, QUARTER}, {E4, QUARTER}, {D4, HALF}
+};
+
+// song name: ring around the rosy
+const int short_ring_around_the_rosy[][2] = {
+    {C4, QUARTER}, {D4, QUARTER}, {E4, QUARTER}, {C4, QUARTER},
+    {C4, QUARTER}, {D4, QUARTER}, {E4, QUARTER}
+};
+
+/////////////////////////////////////////////////////////////////////////
+
 void initialize_songs(){
     songs[0].notes = twinkle_twinkle;
     songs[0].length = sizeof(twinkle_twinkle) / sizeof(twinkle_twinkle[0]);
@@ -129,7 +165,22 @@ void initialize_songs(){
 
     songs[4].notes = ring_around_the_rosy;
     songs[4].length = sizeof(ring_around_the_rosy) / sizeof(ring_around_the_rosy[0]);
+	
 
+	short_song[0].notes = short_twinkle_twinkle;
+    short_song[0].length = sizeof(short_twinkle_twinkle) / sizeof(short_twinkle_twinkle[0]);
+
+    short_song[1].notes = short_mary_had_a_little_lamb;
+    short_song[1].length = sizeof(short_mary_had_a_little_lamb) / sizeof(short_mary_had_a_little_lamb[0]);
+
+    short_song[2].notes = short_old_macdonald;
+    short_song[2].length = sizeof(short_old_macdonald) / sizeof(short_old_macdonald[0]);
+
+    short_song[3].notes = short_o_canada;
+    short_song[3].length = sizeof(short_o_canada) / sizeof(short_o_canada[0]);
+
+    short_song[4].notes = short_ring_around_the_rosy;
+    short_song[4].length = sizeof(short_ring_around_the_rosy) / sizeof(short_ring_around_the_rosy[0]);
 }
 
 
@@ -195,11 +246,11 @@ void custom_srand(unsigned int new_seed) {
 int randomSongIndex;
 
 void hint(){
-	//fill out hint function here 
+	play_song(songs[randomSongIndex].notes, songs[randomSongIndex].length); 
 }
 
 void repeat(){
-	play_song(songs[randomSongIndex].notes, songs[randomSongIndex].length);
+	play_song(short_song[randomSongIndex].notes, short_song[randomSongIndex].length);
 }
 
 void detect_keyboard(){
@@ -213,16 +264,12 @@ void detect_keyboard(){
 
         if (byte3 == SPACEBAR_SCANCODE){
 			randomSongIndex = custom_rand() % 5;
-            play_song(songs[randomSongIndex].notes, songs[randomSongIndex].length);
+            play_song(short_song[randomSongIndex].notes, short_song[randomSongIndex].length);
         }
 		
-		else if (byte3 == H_SCANCODE){  
-            //hint();
-        }
+		else if (byte3 == H_SCANCODE){hint();}
 		
-		else if (byte3 == R_SCANCODE){  
-            repeat();
-        }
+		else if (byte3 == R_SCANCODE){repeat();}
     }
 }
 
@@ -243,4 +290,3 @@ int main(void) {
 
     return 0;
 }
-
