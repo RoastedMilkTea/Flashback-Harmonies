@@ -2,10 +2,10 @@
 #include <stdint.h>
 #include <stdlib.h> 
 #include <time.h>  
-#include "visuals.c" 
+#include "visuals.c"  
 
 #define AUDIO_BASE  0xFF203040  // base address of the audio codec
-#define SWITCHES_ADDR 0xFF200040  // base address of switches
+//#define SWITCHES_ADDR 0xFF200040  // base address of switches
 #define TIMER_BASE  0xFF202000  // base address of the timer
 
 #define SAMPLE_RATE 8000  // 8 kHz sample rate
@@ -15,10 +15,17 @@
 #define MAX_VALUE 0xFFFFFF
 #define MIN_VALUE 0
 
+#define PS2_DATA 0xFF200100
+#define PS2_CONTROL 0xFF200104
+#define SPACEBAR_SCANCODE 0x29 //ps2 space scancode
+
 // hardware registers (memory-mapped)
 volatile int* audio_ptr = (int*) AUDIO_BASE;
-volatile int* switch_ptr = (int*) SWITCHES_ADDR;
+//volatile int* switch_ptr = (int*) SWITCHES_ADDR;
 volatile int* timer_ptr = (int*) TIMER_BASE;
+
+volatile int *PS2_ptr = (int *)PS2_DATA;
+char byte1 = 0, byte2 = 0, byte3 = 0;
 
 //define notes (Hz)
 #define C3  130
@@ -54,11 +61,13 @@ struct audio_t {
     volatile unsigned int rdata;
 };
 
-//create a struct of songs so that we can randomly access them 
+//create a struct of songs so that we can randomly access them
 typedef struct {
     const int (*notes)[2];
     int length;
 } Song;
+
+Song songs[5]; //make the songs array global
 
 //pointer to audio register structure
 struct audio_t *const audiop = ((struct audio_t *) AUDIO_BASE);
@@ -82,12 +91,12 @@ const int mary_had_a_little_lamb[][2] = {
 const int old_macdonald[][2] = {
     {G4, QUARTER}, {G4, QUARTER}, {G4, QUARTER}, {D4, HALF},
     {E4, QUARTER}, {E4, QUARTER}, {D4, HALF},
-    {B3, QUARTER}, {B3, QUARTER}, {A3, QUARTER}, {A3, QUARTER}, 
+    {B3, QUARTER}, {B3, QUARTER}, {A3, QUARTER}, {A3, QUARTER},
     {G3, HALF}, {D4, QUARTER}, {G3, HALF},
 
 };
 
-//song name: O Canada 
+//song name: O Canada
 const int o_canada[][2] = {
     {C4, QUARTER}, {F4, QUARTER}, {F4, QUARTER}, {G4, QUARTER},
     {F4, QUARTER}, {E4, QUARTER}, {D4, HALF},
@@ -103,6 +112,24 @@ const int ring_around_the_rosy[][2] = {
     {E4, QUARTER}, {C4, QUARTER}, {G4, HALF},
 
 };
+
+void initialize_songs(){
+    songs[0].notes = twinkle_twinkle;
+    songs[0].length = sizeof(twinkle_twinkle) / sizeof(twinkle_twinkle[0]);
+
+    songs[1].notes = mary_had_a_little_lamb;
+    songs[1].length = sizeof(mary_had_a_little_lamb) / sizeof(mary_had_a_little_lamb[0]);
+
+    songs[2].notes = old_macdonald;
+    songs[2].length = sizeof(old_macdonald) / sizeof(old_macdonald[0]);
+
+    songs[3].notes = o_canada;
+    songs[3].length = sizeof(o_canada) / sizeof(o_canada[0]);
+
+    songs[4].notes = ring_around_the_rosy;
+    songs[4].length = sizeof(ring_around_the_rosy) / sizeof(ring_around_the_rosy[0]);
+
+}
 
 
 //function to set up the timer
@@ -164,60 +191,36 @@ void custom_srand(unsigned int new_seed) {
     seed = new_seed;
 }
 
+void detect_keyboard_input() {
+    int PS2_data = *PS2_ptr;  //read from ps2 data reg
+    int RVALID = PS2_data & 0x8000;  //check to see if data is valid
+
+    if (RVALID) {
+        byte1 = byte2;
+        byte2 = byte3;
+        byte3 = PS2_data & 0xFF;  // get the scan code - in this case its space
+
+        if (byte3 == SPACEBAR_SCANCODE) {  
+            int randomSongIndex = custom_rand() % 5;
+            play_song(songs[randomSongIndex].notes, songs[randomSongIndex].length);
+        }
+    }
+}
+
+
 // main function
 int main(void) {
     audiop->control = 0x1;
     custom_srand(*(timer_ptr) & 0xFFFF);
-
-    //creating the array of songs
-    Song songs[5];
-    songs[0].notes = twinkle_twinkle;
-    songs[0].length = sizeof(twinkle_twinkle) / sizeof(twinkle_twinkle[0]);
-    
-    songs[1].notes = mary_had_a_little_lamb;
-    songs[1].length = sizeof(mary_had_a_little_lamb) / sizeof(mary_had_a_little_lamb[0]);
-    
-    songs[2].notes = old_macdonald;
-    songs[2].length = sizeof(old_macdonald) / sizeof(old_macdonald[0]);
-    
-    songs[3].notes = o_canada;
-    songs[3].length = sizeof(o_canada) / sizeof(o_canada[0]);
-    
-    songs[4].notes = ring_around_the_rosy;
-    songs[4].length = sizeof(ring_around_the_rosy) / sizeof(ring_around_the_rosy[0]);
-    
-    int prevSwitchState = 0;
-    int currentSwitchState;
-
-    int switchInput;
+   
+    initialize_songs();
+   
+   
     while (1) {
-        //switchInput = *switch_ptr;
-
-        // if (switchInput & 0x1) {
-        //     play_song(twinkle_twinkle, sizeof(twinkle_twinkle) / sizeof(twinkle_twinkle[0]));
-        // } else if (switchInput & 0x2) {
-        //     play_song(mary_had_a_little_lamb, sizeof(mary_had_a_little_lamb) / sizeof(mary_had_a_little_lamb[0]));
-        // } else if (switchInput & 0x4) {
-        //     play_song(old_macdonald, sizeof(old_macdonald) / sizeof(old_macdonald[0]));
-        // } else if (switchInput & 0x8) {
-        //     play_song(o_canada, sizeof(o_canada) / sizeof(o_canada[0]));
-        // } else if (switchInput & 0x10) {
-        //     play_song(ring_around_the_rosy, sizeof(ring_around_the_rosy) / sizeof(ring_around_the_rosy[0]));
-        // }
-
-        currentSwitchState = *switch_ptr;
-        
-        // check if any switch has been newly pressed
-        if (currentSwitchState != 0 && prevSwitchState == 0) {
-            // select a random song 
-            int randomSongIndex = custom_rand() % 5;
-            play_song(songs[randomSongIndex].notes, songs[randomSongIndex].length);
-        }
-        
-        // store the current switch state for the next iteration
-        prevSwitchState = currentSwitchState;
+       
+      detect_keyboard_input();
+       
     }
 
     return 0;
 }
-
