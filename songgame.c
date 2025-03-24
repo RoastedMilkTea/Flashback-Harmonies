@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stdlib.h> 
 #include <time.h>  
-#include "visuals.c"  
 
 #define AUDIO_BASE  0xFF203040  // base address of the audio codec
 //#define SWITCHES_ADDR 0xFF200040  // base address of switches
@@ -18,6 +17,8 @@
 #define PS2_DATA 0xFF200100
 #define PS2_CONTROL 0xFF200104
 #define SPACEBAR_SCANCODE 0x29 //ps2 space scancode
+#define H_SCANCODE 0x33 
+#define R_SCANCODE 0x2D 
 
 // hardware registers (memory-mapped)
 volatile int* audio_ptr = (int*) AUDIO_BASE;
@@ -191,18 +192,36 @@ void custom_srand(unsigned int new_seed) {
     seed = new_seed;
 }
 
-void detect_keyboard_input() {
+int randomSongIndex;
+
+void hint(){
+	//fill out hint function here 
+}
+
+void repeat(){
+	play_song(songs[randomSongIndex].notes, songs[randomSongIndex].length);
+}
+
+void detect_keyboard(){
     int PS2_data = *PS2_ptr;  //read from ps2 data reg
     int RVALID = PS2_data & 0x8000;  //check to see if data is valid
 
-    if (RVALID) {
+    if (RVALID){
         byte1 = byte2;
         byte2 = byte3;
         byte3 = PS2_data & 0xFF;  // get the scan code - in this case its space
 
-        if (byte3 == SPACEBAR_SCANCODE) {  
-            int randomSongIndex = custom_rand() % 5;
+        if (byte3 == SPACEBAR_SCANCODE){
+			randomSongIndex = custom_rand() % 5;
             play_song(songs[randomSongIndex].notes, songs[randomSongIndex].length);
+        }
+		
+		else if (byte3 == H_SCANCODE){  
+            //hint();
+        }
+		
+		else if (byte3 == R_SCANCODE){  
+            repeat();
         }
     }
 }
@@ -218,9 +237,10 @@ int main(void) {
    
     while (1) {
        
-      detect_keyboard_input();
+      detect_keyboard();
        
     }
 
     return 0;
 }
+
